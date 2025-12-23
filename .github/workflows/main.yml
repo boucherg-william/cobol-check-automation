@@ -6,12 +6,21 @@ jobs:
   cobol-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repo
+      uses: actions/checkout@v4
     - name: Set up Java
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+    - name: Install Zowe CLI
+      run: |
+        npm install -g @zowe/cli
+        zowe --version
     - name: Setup Mainframe Environment and Upload COBOL Check
       env:
         ZOWE_USERNAME: ${{ secrets.ZOWE_USERNAME }}
@@ -20,6 +29,7 @@ jobs:
         chmod +x .github/scripts/zowe_operations.sh
         .github/scripts/zowe_operations.sh
         - name: Run COBOL Check on Mainframe
+
     - name: Run COBOL on Mainframe
       env:
         ZOWE_USERNAME: ${{ secrets.ZOWE_USERNAME }}
@@ -27,34 +37,3 @@ jobs:
       run: |
         chmod +x .github/scripts/mainframe_operations.sh
         .github/scripts/mainframe_operations.sh
-  zowe-job:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install Zowe CLI
-        run: |
-          npm install -g @zowe/cli
-          zowe --version
-
-      - name: Configure Zowe profile
-        run: |
-          zowe config init --global-config
-          zowe profiles create zosmf zosmf-profile \
-            --host $ZOSMF_HOST \
-            --port $ZOSMF_PORT \
-            --user $ZOWE_USERNAME \
-            --password $ZOWE_PASSWORD \
-            --reject-unauthorized false
-
-      - name: Run Zowe script
-        run: |
-          chmod +x zowe_operations.sh
-          ./zowe_operations.sh
